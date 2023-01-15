@@ -1,0 +1,34 @@
+net_cfg:
+  _target_: networks.Unet
+
+stft_cfg:
+  _target_: util.STFT
+  n_fft: 512
+  hop_length: 128
+  window_type: hamming
+  pad_mode: constant
+  device: cuda:0
+
+optim_cfg:
+  _target_: torch.optim.Adam
+  lr: 0.0001
+  weight_decay: 0
+
+main_loss: mae
+train_losses:
+  mae:
+    _target_: torch.nn.L1Loss
+valid_losses:
+  mae:
+    _target_: torch.nn.L1Loss
+  pesq:
+    _target_: loss.SEMetric
+    metric: "pesq"
+    sampling_rate: ${sampling_rate}
+test_losses:
+  mae:
+    _target_: torch.nn.L1Loss
+  pesq:
+    _target_: loss.SEMetric
+    metric: "pesq"
+    sampling_rate: ${sampling_rate}

@@ -1,0 +1,23 @@
+defaults:
+    - _self_
+    - model: default
+    - trainer: default
+    - experiments: null
+
+every_n_epochs_valid: 10
+
+seed: 1234
+name: null
+train: true
+test: true
+
+sampling_rate: 16000
+channels: 1
+bits_per_sample: 16
+
+path:
+    exp_root: null
+
+hydra:
+    run:
+        dir: ${path.exp_root}/${name}
