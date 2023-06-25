@@ -1,0 +1,30 @@
+
+########### HYPER PARAMETERS ###########
+n_iter: 2000
+n_input: 10
+pooling: "min"
+show_every: 100
+########################################
+
+
+seed: 1234
+
+device: "cuda:0"
+
+stft_cfg:
+  n_fft: 512
+  hop_length: 128
+  window_type: hamming
+  pad_mode: constant
+  device: ${device}
+
+net_cfg:
+  _target_: networks.Unet
+
+optim_cfg:
+  _target_: torch.optim.Adam
+  lr: 0.01
+  weight_decay: 0
+
+loss_cfg:
+  _target_: torch.nn.L1Loss
