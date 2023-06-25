@@ -9,7 +9,7 @@ show_every: 50
 
 seed: 1234
 
-device: "cpu"
+device: "cuda:0"
 
 stft_cfg:
   n_fft: 512
