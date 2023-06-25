@@ -139,7 +139,7 @@ class DPRemover:
 
     def spec_show(self, amp_spec, title=""):
         plt.imshow(
-            amp_spec.cpu(),  # 20 * torch.log10(amp_spec.cpu() + 1e-8),
+            amp_spec.detach().cpu(),  # 20 * torch.log10(amp_spec.cpu() + 1e-8),
             origin="lower",
             cmap="viridis",
             aspect="auto",
