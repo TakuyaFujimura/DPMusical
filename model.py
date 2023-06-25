@@ -23,7 +23,7 @@ class DPRemover:
     def __init__(self, config) -> None:
         self.n_iter = config.n_iter
         self.n_input = config.n_input
-        self.pooling_type = config.pooling
+        self.pooling_type = config.pooling_type
         assert self.pooling_type in ["mean", "median", "min"]
         self.stft = STFT(**config.stft_cfg)
         self.network = instantiate(config.net_cfg)
@@ -43,17 +43,20 @@ class DPRemover:
         Args:
             x (tensor): waveform (n_time)
         """
+        self.n_time = len(x)
         x = x.to(self.device)
-        X, angle, pad_list = self.wave_to_image(x)
-        Z = self.get_input(X)
+        X, self.angle, self.pad_list = self.wave_to_image(x)
+        X = X.expand(self.n_input, -1, -1, -1)
+        Z = torch.rand_like(X)
         Z = Z.to(self.device)
         self.train(X, Z)
-
+        
         self.network.eval()
         with torch.no_grad():
-            S = self.network(X)
-        s = self.image_to_wave(S, angle, pad_list, len(x))
-        return s
+            S = self.network(Z)
+        s = self.image_to_wave(S, self.angle, self.pad_list, self.n_time)
+        
+        return s.detach().cpu()
 
     def pad(self, x):
         """Applies zero-padding to adjust the shape
@@ -112,10 +115,6 @@ class DPRemover:
         x = self.stft.inv(spectrogram, n_time)
         return x
 
-    def get_input(self, X):
-        Z = torch.rand_like(X).expand(self.n_input, -1, -1, -1)
-        return Z
-
     def train(self, target, net_input):
         """Trains a network
         Args:
@@ -131,19 +130,18 @@ class DPRemover:
             self.optimizer.zero_grad()
 
             if i % self.show_every == 0:
-                self.network.eval()
                 with torch.no_grad():
-                    net_output = self.network(net_input)
-                    S = self.pooling(net_output)[0, 0]
-                self.spec_show(S, str(i))
+                    s = self.image_to_wave(net_output, self.angle, self.pad_list, self.n_time)
+                    self.spec_show(s, str(i))
 
-    def spec_show(self, amp_spec, title=""):
+    def spec_show(self, waveform, title=""):
+        amp_spec = torch.abs(self.stft(waveform))
         plt.imshow(
-            amp_spec.cpu(),  # 20 * torch.log10(amp_spec.cpu() + 1e-8),
+            20 * torch.log10(amp_spec.cpu() + 1e-8),
             origin="lower",
             cmap="viridis",
             aspect="auto",
-            # norm=Normalize(vmin=-160, vmax=-30),
+            #norm=Normalize(vmin=-160, vmax=-30),
         )
         plt.title(title)
         plt.ylabel("Frequency")
