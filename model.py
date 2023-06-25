@@ -50,12 +50,12 @@ class DPRemover:
         Z = torch.rand_like(X)
         Z = Z.to(self.device)
         self.train(X, Z)
-        
+
         self.network.eval()
         with torch.no_grad():
             S = self.network(Z)
         s = self.image_to_wave(S, self.angle, self.pad_list, self.n_time)
-        
+
         return s.detach().cpu()
 
     def pad(self, x):
@@ -131,7 +131,9 @@ class DPRemover:
 
             if i % self.show_every == 0:
                 with torch.no_grad():
-                    s = self.image_to_wave(net_output, self.angle, self.pad_list, self.n_time)
+                    s = self.image_to_wave(
+                        net_output, self.angle, self.pad_list, self.n_time
+                    )
                     self.spec_show(s, str(i))
 
     def spec_show(self, waveform, title=""):
@@ -141,7 +143,7 @@ class DPRemover:
             origin="lower",
             cmap="viridis",
             aspect="auto",
-            #norm=Normalize(vmin=-160, vmax=-30),
+            # norm=Normalize(vmin=-160, vmax=-30),
         )
         plt.title(title)
         plt.ylabel("Frequency")
