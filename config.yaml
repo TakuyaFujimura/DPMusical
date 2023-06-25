@@ -1,15 +1,15 @@
 
 ########### HYPER PARAMETERS ###########
 n_iter: 2000
-n_input: 10
-pooling: "min"
-show_every: 200
+n_input: 1
+pooling: "mean"
+show_every: 50
 ########################################
 
 
 seed: 1234
 
-device: "cuda:0"
+device: "cpu"
 
 stft_cfg:
   n_fft: 512
