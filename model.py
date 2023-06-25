@@ -43,8 +43,10 @@ class DPRemover:
         Args:
             x (tensor): waveform (n_time)
         """
+        x = x.to(self.device)
         X, angle, pad_list = self.wave_to_image(x)
         Z = self.get_input(X)
+        Z = Z.to(self.device)
         self.train(X, Z)
 
         self.network.eval()
@@ -120,9 +122,7 @@ class DPRemover:
             target (tensor): target signal (1, 1, H, W)
             net_input (tensor): input signal (n_input, 1, H, W)
         """
-        net_input = net_input.to(self.device)
         self.network.train()
-        target = target.to(self.device)
         for i in tqdm(range(1, self.n_iter + 1)):
             net_output = self.network(net_input)
             loss = self.loss_func(net_output, target)
@@ -143,7 +143,7 @@ class DPRemover:
             origin="lower",
             cmap="viridis",
             aspect="auto",
-            norm=Normalize(vmin=-160, vmax=-30),
+            # norm=Normalize(vmin=-160, vmax=-30),
         )
         plt.title(title)
         plt.ylabel("Frequency")
