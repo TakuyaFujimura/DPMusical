@@ -19,12 +19,12 @@ def seed_everything(seed=42):
     torch.use_deterministic_algorithms = True
 
 
-class DPRemoval:
+class DPRemover:
     def __init__(self, config) -> None:
         self.n_iter = config.n_iter
         self.n_input = config.n_input
-        self.pooling = config.pooling
-        assert self.pooling in ["mean", "median", "min"]
+        self.pooling_type = config.pooling
+        assert self.pooling_type in ["mean", "median", "min"]
         self.stft = STFT(**config.stft_cfg)
         self.network = instantiate(config.net_cfg)
         self.network.to(config.device)
@@ -84,14 +84,14 @@ class DPRemoval:
 
     def pooling(self, X):
         # [B, 1, H, W] -> [1, 1, H, W]
-        if self.pooling == "mean":
-            X = torch.mean(X, dim=0)
-        elif self.pooling == "median":
-            X = torch.median(X, dim=0).values
-        elif self.pooling == "min":
-            X = torch.min(X, dim=0).values
+        if self.pooling_type == "mean":
+            X = torch.mean(X, dim=0, keepdim=True)
+        elif self.pooling_type == "median":
+            X = torch.median(X, dim=0, keepdim=True).values
+        elif self.pooling_type == "min":
+            X = torch.min(X, dim=0, keepdim=True).values
         else:
-            raise ValueError(f"{self.pooling} is not supported.")
+            raise ValueError(f"{self.pooling_type} is not supported.")
         return X
 
     def image_to_wave(self, X, angle, pad_list, n_time):
@@ -104,8 +104,8 @@ class DPRemoval:
         Returns:
             x (tensor): waveform (n_time)
         """
-        X = X[:, 0, pad_list[0] :, pad_list[1] :]
-        amp_spec = self.pooling(X)
+        X = X[:, :, pad_list[0] :, pad_list[1] :]
+        amp_spec = self.pooling(X)[0, 0]
         spectrogram = amp_spec * torch.exp(1j * angle)
         x = self.stft.inv(spectrogram, n_time)
         return x
